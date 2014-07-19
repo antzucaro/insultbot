@@ -1,10 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -14,13 +15,23 @@ import (
 // loadInsults loads up insults from the given filename. The file format
 // is one insult per line in the text file.
 func loadInsults(fn string) []string {
-	data, err := ioutil.ReadFile(fn)
+	f, err := os.Open(fn)
 	if err != nil {
-		fmt.Println("can't open", fn, ", using default insult instead")
-		data = []byte("You suck!")
+		fmt.Println("Couldn't open " + fn + ". Using a default insult instead.")
+		return []string{"You suck!"}
+	}
+	defer f.Close()
+
+	r := bufio.NewReader(f)
+	insults := make([]string, 0)
+
+	line, err := r.ReadString('\n')
+	for err == nil {
+		insults = append(insults, line)
+		line, err = r.ReadString('\n')
 	}
 
-	return strings.Split(string(data), "\n")
+	return insults
 }
 
 // isPM determines if a PRIVMSG IRC event is a direct message to the bot.
