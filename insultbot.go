@@ -21,6 +21,14 @@ func loadInsults(fn string) []string {
 	return strings.Split(string(data), "\n")
 }
 
+func isPM(e *irc.Event) bool {
+	if len(e.Arguments) < 1 {
+		return false
+	}
+
+	return !strings.HasPrefix(e.Arguments[0], "#")
+}
+
 func main() {
 	file := flag.String("file", "insults.txt", "A text file with insults")
 	room := flag.String("chan", "#hoctf.test", "Channel to join")
@@ -49,6 +57,11 @@ func main() {
 
 	// and now for the insults!
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
+		// ignore PMs
+		if isPM(e) {
+			return
+		}
+
 		msg := e.Message()
 		if len(msg) >= 6 && strings.ToLower(msg[0:6]) == "insult" {
 			tokens := strings.Split(msg, " ")
