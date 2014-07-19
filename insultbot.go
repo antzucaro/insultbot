@@ -11,6 +11,8 @@ import (
 	"github.com/thoj/go-ircevent"
 )
 
+// loadInsults loads up insults from the given filename. The file format
+// is one insult per line in the text file.
 func loadInsults(fn string) []string {
 	data, err := ioutil.ReadFile(fn)
 	if err != nil {
@@ -21,6 +23,8 @@ func loadInsults(fn string) []string {
 	return strings.Split(string(data), "\n")
 }
 
+// isPM determines if a PRIVMSG IRC event is a direct message to the bot.
+// If it is, it will be ignored.
 func isPM(e *irc.Event) bool {
 	if len(e.Arguments) < 1 {
 		return false
@@ -34,7 +38,7 @@ func main() {
 	room := flag.String("chan", "#hoctf.test", "Channel to join")
 	flag.Parse()
 
-	// random seed
+	// seed the bot with the current epoch
 	t := time.Now()
 	seed := t.Unix()
 	rand.Seed(seed)
