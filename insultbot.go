@@ -30,7 +30,7 @@ func isPM(e *irc.Event) bool {
 		return false
 	}
 
-	return !strings.HasPrefix(e.Arguments[0], "#")
+	return e.Code == "PRIVMSG" && !strings.HasPrefix(e.Arguments[0], "#")
 }
 
 func main() {
