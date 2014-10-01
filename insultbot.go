@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -70,7 +71,10 @@ func main() {
 		conn.Privmsg(*room, "Hi, I'm InsultBot. Say 'insult <nick>' to insult someone!")
 	})
 
-	// and now for the insults!
+	// this is what an insult command looks like
+	insultCmdFormat := regexp.MustCompile("^insult ([\\w-\\\\[\\]\\{\\}^`|]*)[ :]*$")
+
+	// insult the specified nick
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
 		// ignore PMs
 		if isPM(e) {
@@ -78,16 +82,11 @@ func main() {
 		}
 
 		msg := e.Message()
-		if len(msg) >= 6 && strings.ToLower(msg[0:6]) == "insult" {
-			tokens := strings.Split(msg, " ")
-
-			if len(tokens) > 1 {
-				nick := tokens[1]
-				// check here if the nick actually exists?
-				insult := insults[rand.Intn(len(insults))]
-
-				conn.Privmsg(*room, nick+": "+insult)
-			}
+		res := insultCmdFormat.FindStringSubmatch(msg)
+		if len(res) == 2 {
+			nick := res[1]
+			insult := insults[rand.Intn(len(insults))]
+			conn.Privmsg(*room, nick+": "+insult)
 		}
 	})
 
