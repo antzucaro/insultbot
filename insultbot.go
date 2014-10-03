@@ -48,6 +48,7 @@ func isPM(e *irc.Event) bool {
 func main() {
 	file := flag.String("file", "insults.txt", "A text file with insults")
 	room := flag.String("chan", "#hoctf.test", "Channel to join")
+	server := flag.String("server", "irc.quakenet.org", "IRC network to join")
 	flag.Parse()
 
 	// seed the bot with the current epoch
@@ -59,7 +60,7 @@ func main() {
 
 	// connect
 	conn := irc.IRC("InsultBot", "InsultBot")
-	err := conn.Connect("irc.quakenet.org:6667")
+	err := conn.Connect(*server + ":6667")
 	if err != nil {
 		fmt.Println("Could not connect!")
 		return
