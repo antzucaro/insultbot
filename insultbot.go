@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thoj/go-ircevent"
+	"github.com/antzucaro/go-ircevent"
 )
 
 // loadInsults loads up insults from the given filename. The file format
@@ -58,6 +58,9 @@ func main() {
 
 	// connect
 	conn := irc.IRC("InsultBot", "InsultBot")
+    //conn.VerboseReadLoop = true
+    conn.Debug = true
+    //conn.VerboseCallbackHandler = true
 	err := conn.Connect(*server + ":6667")
 	if err != nil {
 		fmt.Println("Could not connect!")
