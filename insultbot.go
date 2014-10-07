@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/antzucaro/go-ircevent"
+	"github.com/thoj/go-ircevent"
 )
 
 // loadInsults loads up insults from the given filename. The file format
@@ -58,9 +58,10 @@ func main() {
 
 	// connect
 	conn := irc.IRC("InsultBot", "InsultBot")
-    //conn.VerboseReadLoop = true
-    conn.Debug = true
-    //conn.VerboseCallbackHandler = true
+
+	// if you want debugging
+	// conn.Debug = true
+
 	err := conn.Connect(*server + ":6667")
 	if err != nil {
 		fmt.Println("Could not connect!")
@@ -73,21 +74,21 @@ func main() {
 		conn.Privmsg(*room, "Hi, I'm InsultBot. Say 'insult <nick>' to insult someone!")
 	})
 
-    // whenever someone JOINs or PARTs we need to refresh the nicklist
-    // by sending a NAMES command
-    namesf := func(e *irc.Event) { conn.SendRaw("NAMES " + *room) }
+	// whenever someone JOINs or PARTs we need to refresh the nicklist
+	// by sending a NAMES command
+	namesf := func(e *irc.Event) { conn.SendRaw("NAMES " + *room) }
 	conn.AddCallback("JOIN", namesf)
 	conn.AddCallback("PART", namesf)
 
-    // if we get a 353, we need to refresh the list
-    nicklist := make(map[string]bool)
-    conn.AddCallback("353", func(e *irc.Event){
-        nicks := make(map[string]bool)
-        for _, nick := range strings.Split(e.Message(), " ") {
-            nicks[strings.Trim(nick, "@+")] = true
-        }
-        nicklist = nicks
-    })
+	// if we get a 353, we need to refresh the list
+	nicklist := make(map[string]struct{})
+	conn.AddCallback("353", func(e *irc.Event) {
+		nicks := make(map[string]struct{})
+		for _, nick := range strings.Split(e.Message(), " ") {
+			nicks[strings.Trim(nick, "@+")] = struct{}{}
+		}
+		nicklist = nicks
+	})
 
 	// this is what an insult command looks like
 	insultCmdFormat := regexp.MustCompile("^insult ([\\w-\\\\[\\]\\{\\}^`|]*)[ :]*$")
@@ -99,21 +100,21 @@ func main() {
 			return
 		}
 
-        // who made this request?
-        requestor := e.Nick
+		// who made this request?
+		requestor := e.Nick
 
 		res := insultCmdFormat.FindStringSubmatch(e.Message())
 		if len(res) == 2 {
 			nick := res[1]
 			insult := insults[rand.Intn(len(insults))]
 
-            // if nick doesn't exist, insult the requestor!
-            _, ok := nicklist[nick]
-            if !ok {
-                conn.Privmsg(*room, requestor+": "+insult)
-            } else {
-                conn.Privmsg(*room, nick+": "+insult)
-            }
+			// if nick doesn't exist, insult the requestor!
+			_, ok := nicklist[nick]
+			if !ok {
+				conn.Privmsg(*room, requestor+": "+insult)
+			} else {
+				conn.Privmsg(*room, nick+": "+insult)
+			}
 		}
 	})
 
